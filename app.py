@@ -219,6 +219,7 @@ def rondas():
 
     conn.close()
     return render_template('rondas.html', rondas=rondas_list, pacientes=pacientes, medicos=medicos)
+    
 @app.route('/rondas/agregar', methods=['POST'])
 def agregar_ronda():
     id_paciente = request.form['id_paciente']
