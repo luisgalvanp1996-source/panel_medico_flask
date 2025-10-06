@@ -1,0 +1,74 @@
+/* ===== Estilo General ===== */
+body {
+  background-color: #f8fafc;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* ===== Navbar ===== */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== Contenedor principal ===== */
+.container {
+  margin-top: 30px;
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== Títulos ===== */
+h1, h2, h3 {
+  color: #0d6efd;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* ===== Tablas ===== */
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.table th {
+  background-color: #0d6efd;
+  color: white;
+  text-align: center;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* ===== Botones ===== */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+}
+
+.btn-success {
+  background-color: #198754;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* ===== Formularios ===== */
+form input, form select {
+  border-radius: 6px;
+}
+
+/* ===== Footer ===== */
+footer {
+  text-align: center;
+  color: #888;
+  margin-top: 30px;
+  font-size: 0.9em;
+}

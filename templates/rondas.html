@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Rondas Médicas</h2>
+
+<!-- Formulario para agregar ronda -->
+<form action="/rondas/agregar" method="POST" class="row g-2 mb-3">
+  <div class="col">
+    <select name="id_paciente" class="form-control" required>
+      <option value="">Paciente</option>
+      {% for p in pacientes %}
+        <option value="{{p[0]}}">{{p[1]}}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col">
+    <select name="id_medico" class="form-control" required>
+      <option value="">Médico</option>
+      {% for m in medicos %}
+        <option value="{{m[0]}}">{{m[1]}}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col"><input class="form-control" name="observaciones" placeholder="Observaciones"></div>
+  <div class="col"><input class="form-control" name="ritmo_cardiaco" type="number" placeholder="Ritmo cardíaco (LPM)"></div>
+  <div class="col"><input class="form-control" name="presion_arterial" placeholder="Presión arterial (ej. 120/80)"></div>
+  <div class="col"><input class="form-control" name="oxigeno" type="number" placeholder="Oxígeno (%)"></div>
+  <div class="col"><input class="form-control" name="temperatura" type="number" step="0.1" placeholder="Temperatura (°C)"></div>
+  <div class="col"><input class="form-control" name="respiraciones" type="number" placeholder="Respiraciones/min"></div>
+  <div class="col"><button class="btn btn-success w-100">Agregar</button></div>
+</form>
+
+<!-- Tabla de rondas -->
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Paciente</th>
+      <th>Médico</th>
+      <th>Fecha</th>
+      <th>Observaciones</th>
+      <th>Ritmo cardíaco</th>
+      <th>Presión arterial</th>
+      <th>Oxígeno</th>
+      <th>Temperatura</th>
+      <th>Respiraciones</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in rondas %}
+    <tr>
+      <td>{{r[0]}}</td>
+      <td>{{r[1]}}</td>
+      <td>{{r[2]}}</td>
+      <td>{{r[3]}}</td>
+      <td>{{r[4]}}</td>
+      <td>{{r[5]}}</td>
+      <td>{{r[6]}}</td>
+      <td>{{r[7]}}</td>
+      <td>{{r[8]}}</td>
+      <td>{{r[9]}}</td>
+      <td><a href="/rondas/eliminar/{{r[0]}}" class="btn btn-sm btn-danger">Eliminar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

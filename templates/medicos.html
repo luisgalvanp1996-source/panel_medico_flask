@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Médicos</h2>
+<form action="/medicos/agregar" method="POST" class="row g-2 mb-3">
+  <div class="col"><input class="form-control" name="nombre" placeholder="Nombre" required></div>
+  <div class="col"><input class="form-control" name="especialidad" placeholder="Especialidad" required></div>
+  <div class="col"><input class="form-control" name="telefono" placeholder="Teléfono"></div>
+  <div class="col"><button class="btn btn-success w-100">Agregar</button></div>
+</form>
+
+<table class="table table-striped">
+  <thead><tr><th>ID</th><th>Nombre</th><th>Especialidad</th><th>Teléfono</th><th></th></tr></thead>
+  <tbody>
+  {% for m in medicos %}
+    <tr>
+      <td>{{m[0]}}</td><td>{{m[1]}}</td><td>{{m[2]}}</td><td>{{m[3]}}</td>
+      <td><a href="/medicos/eliminar/{{m[0]}}" class="btn btn-sm btn-danger">Eliminar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

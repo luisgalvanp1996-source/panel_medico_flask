@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Pacientes</h2>
+<form action="/pacientes/agregar" method="POST" class="row g-2 mb-3">
+  <div class="col"><input class="form-control" name="nombre" placeholder="Nombre" required></div>
+  <div class="col"><input class="form-control" name="edad" type="number" placeholder="Edad" required></div>
+  <div class="col">
+    <select class="form-control" name="sexo" required>
+      <option value="">Sexo</option>
+      <option>M</option>
+      <option>F</option>
+    </select>
+  </div>
+  <div class="col"><input class="form-control" name="diagnostico" placeholder="Diagnóstico"></div>
+  <div class="col"><button class="btn btn-success w-100">Agregar</button></div>
+</form>-->
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Edad</th>
+            <th>Estatus</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in pacientes %}
+        <tr>
+            <td>{{ p[1] }}</td>
+            <td>{{ p[2] }}</td>
+            <td>{{ p[3] }}</td> <!-- aquí estatus -->
+            <td>
+                <form method="POST" action="{{ url_for('cambiar_estatus', id_paciente=p[0]) }}" style="display:inline;">
+                    {% if p[3] != 'alta' %}
+                    <input type="hidden" name="estatus" value="alta">
+                    <button type="submit" class="btn btn-danger btn-sm">Dar de alta</button>
+                    {% endif %}
+                    {% if p[3] != 'activo' %}
+                    <input type="hidden" name="estatus" value="activo">
+                    <button type="submit" class="btn btn-success btn-sm">Activar</button>
+                    {% endif %}
+                    {% if p[3] != 'por ingresar' %}
+                    <input type="hidden" name="estatus" value="por ingresar">
+                    <button type="submit" class="btn btn-warning btn-sm">Por ingresar</button>
+                    {% endif %}
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!--
+<table class="table table-striped">
+  <thead><tr><th>ID</th><th>Nombre</th><th>Edad</th><th>Sexo</th><th>Diagnóstico</th><th></th></tr></thead>
+  <tbody>
+  {% for p in pacientes %}
+    <tr>
+      <td>{{p[0]}}</td><td>{{p[1]}}</td><td>{{p[2]}}</td><td>{{p[3]}}</td><td>{{p[4]}}</td>
+      <td><a href="/pacientes/eliminar/{{p[0]}}" class="btn btn-sm btn-danger">Eliminar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+-->

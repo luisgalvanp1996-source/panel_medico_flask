@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center">
+  <h1>
+    <img src="{{ url_for('static', filename='logo.jpeg') }}" alt="Logo" class="logo-text">
+    Bienvenido al Panel Médico
+  </h1>
+  <p class="lead">Administra pacientes, médicos y rondas fácilmente.</p>
+</div>
+
+<hr>
+
+<div class="mt-4">
+  <h3>Ver observaciones por paciente</h3>
+  <select id="pacienteSelect" class="form-select w-50">
+    <option value="">-- Selecciona un paciente --</option>
+    {% for p in pacientes %}
+      <option value="{{ p[0] }}">{{ p[1] }}</option>
+    {% endfor %}
+  </select>
+
+  <div id="observacionesContainer" class="mt-3"></div>
+</div>
+
+<script>
+document.getElementById("pacienteSelect").addEventListener("change", function() {
+    const idPaciente = this.value;
+    const container = document.getElementById("observacionesContainer");
+    container.innerHTML = "";
+    if(idPaciente){
+        fetch(`/rondas/paciente/${idPaciente}`)
+        .then(response => response.json())
+        .then(data => {
+            if(data.length === 0){
+                container.innerHTML = "<p>No hay rondas registradas para este paciente.</p>";
+            } else {
+                let html = "<ul class='list-group'>";
+                data.forEach(r => {
+    html += `<li class='list-group-item'>
+        <strong>${r.fecha}</strong>: ${r.observaciones}<br>
+        Ritmo: ${r.ritmo_cardiaco} LPM, Presión: ${r.presion_arterial}, Oxígeno: ${r.oxigeno}%, Temp: ${r.temperatura}°C, Resp: ${r.respiraciones}
+    </li>`;
+});
+
+                html += "</ul>";
+                container.innerHTML = html;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
