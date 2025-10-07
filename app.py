@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import sqlite3
 from datetime import datetime
 from flask import jsonify
@@ -219,7 +219,11 @@ def rondas():
 
     conn.close()
     return render_template('rondas.html', rondas=rondas_list, pacientes=pacientes, medicos=medicos)
-    
+
+@app.route('/service-worker.js')
+def service_worker():
+    return app.send_static_file('service-worker.js')
+
 @app.route('/rondas/agregar', methods=['POST'])
 def agregar_ronda():
     id_paciente = request.form['id_paciente']
