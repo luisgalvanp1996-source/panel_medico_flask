@@ -1,14 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory,jsonify,request
 import sqlite3
 from datetime import datetime
-from flask import jsonify
+from funtions import *
 import locale
 
-app = Flask(__name__)
-DB = "hospital.db"
 
-def conectar():
-    return sqlite3.connect(DB)
+
+app = Flask(__name__)
 
 MESES_ES = {
     1: "Ene", 2: "Feb", 3: "Mar", 4: "Abr",
@@ -67,43 +65,6 @@ def rondas_por_paciente(id_paciente):
         })
 
     return jsonify(result)
-
-
-
-
-def crear_tablas():
-    conn = conectar()
-    cur = conn.cursor()
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS Pacientes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT,
-            edad INTEGER,
-            sexo TEXT,
-            diagnostico TEXT
-        )
-    ''')
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS Medicos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT,
-            especialidad TEXT,
-            telefono TEXT
-        )
-    ''')
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS Rondas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            id_paciente INTEGER,
-            id_medico INTEGER,
-            fecha TEXT,
-            observaciones TEXT,
-            FOREIGN KEY(id_paciente) REFERENCES Pacientes(id),
-            FOREIGN KEY(id_medico) REFERENCES Medicos(id)
-        )
-    ''')
-    conn.commit()
-    conn.close()
 
 @app.route('/')
 def index():
@@ -222,7 +183,7 @@ def rondas():
 
 @app.route('/service-worker.js')
 def service_worker():
-    return app.send_static_file('service-worker.js')
+    return send_from_directory('.', 'service-worker.js')
 
 @app.route('/rondas/agregar', methods=['POST'])
 def agregar_ronda():
@@ -279,7 +240,22 @@ def eliminar_ronda(id):
     conn.close()
     return redirect(url_for('rondas'))
 
+@app.route('/')
+def home():
+    user_agent = request.headers.get('User-Agent')
+    print(user_agent)  # 👉 imprime en la consola del servidor
+    return f"Tu User-Agent es: {user_agent}"
+
 if __name__ == '__main__':
-    crear_tablas()
+    #crear_tablas()
+
+#    conn = conectar()
+#    cur = conn.cursor()
+#    cur.execute("SELECT name FROM sys.tables")
+#    print("Tablas en la base de datos:")
+#    for row in cur.fetchall():
+#        print("-", row[0])
+#    conn.close()
+
     app.run(host='0.0.0.0', port=5000, debug=True)
 

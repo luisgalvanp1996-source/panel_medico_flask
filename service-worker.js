@@ -3,7 +3,11 @@ const CACHE_NAME = "hospital-cache-v1";
 
 // Archivos que queremos guardar en caché
 const urlsToCache = [
-  "/"
+  "/",
+  "/rondas",
+  "/static/css/style.css",
+  "/static/js/app.js",
+  "/favicon.ico"
 ];
 
 // Instalar el service worker
