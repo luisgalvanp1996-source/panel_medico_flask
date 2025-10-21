@@ -1,49 +1,30 @@
 // service-worker.js
-const CACHE_NAME = "hospital-cache-v1";
-
-// Archivos que queremos guardar en caché
+const CACHE_NAME = "hospital-cache-v2";
 const urlsToCache = [
   "/",
   "/rondas",
   "/static/css/style.css",
   "/static/js/app.js",
-  "/favicon.ico"
+  "/static/js/idb-wrapper.js",
+  "/static/js/offline-sync.js",
+  "/static/logo.png",
+  "/static/manifest.json"
 ];
 
-// Instalar el service worker
 self.addEventListener("install", event => {
-  console.log("[SW] Instalando service worker...");
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log("[SW] Cacheando archivos...");
-      return cache.addAll(urlsToCache);
-    })
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
 });
 
-// Activar el service worker
 self.addEventListener("activate", event => {
-  console.log("[SW] Activado");
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(name => {
-          if (name !== CACHE_NAME) {
-            console.log("[SW] Eliminando caché viejo:", name);
-            return caches.delete(name);
-          }
-        })
-      );
-    })
+    caches.keys().then(keys => Promise.all(keys.map(k => { if (k!==CACHE_NAME) return caches.delete(k); })))
   );
 });
 
-// Interceptar solicitudes
 self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      console.log("[SW] Modo offline para", event.request.url);
-      return caches.match(event.request);
-    })
-  );
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).catch(()=>caches.match('/')));
+    return;
+  }
+  event.respondWith(caches.match(event.request).then(resp => resp || fetch(event.request).catch(()=>caches.match('/'))));
 });

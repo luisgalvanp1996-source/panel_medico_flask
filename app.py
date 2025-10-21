@@ -8,11 +8,7 @@ import locale
 
 app = Flask(__name__)
 
-MESES_ES = {
-    1: "Ene", 2: "Feb", 3: "Mar", 4: "Abr",
-    5: "May", 6: "Jun", 7: "Jul", 8: "Ago",
-    9: "Sep", 10: "Oct", 11: "Nov", 12: "Dic"
-}
+
 
 @app.route('/paciente/<int:id_paciente>/cambiar_estatus', methods=['POST'])
 def cambiar_estatus(id_paciente):
@@ -258,4 +254,132 @@ if __name__ == '__main__':
 #    conn.close()
 
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+
+
+# --- API endpoints for client sync ---
+from flask import jsonify, request
+
+# Allowed tables to be pushed from client
+_ALLOWED_TABLES = {'Rondas', 'Pacientes', 'Medicos'}
+
+@app.route('/api/pacientes')
+def api_pacientes():
+    conn = conectar()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id, nombre, edad, sexo, diagnostico FROM Pacientes")
+        rows = cur.fetchall()
+        result = []
+        cols = [c[0] for c in cur.description] if hasattr(cur, 'description') and cur.description else None
+        for r in rows:
+            try:
+                if cols:
+                    d = dict(zip(cols, r))
+                else:
+                    d = {'id': r[0], 'nombre': r[1], 'edad': r[2], 'sexo': r[3], 'diagnostico': r[4]}
+            except Exception:
+                d = {'id': r[0], 'nombre': r[1], 'edad': r[2], 'sexo': r[3], 'diagnostico': r[4]}
+            result.append(d)
+        return jsonify(result)
+    finally:
+        try: conn.close()
+        except: pass
+
+@app.route('/api/medicos')
+def api_medicos():
+    conn = conectar()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id, nombre, especialidad FROM Medicos")
+        rows = cur.fetchall()
+        result = []
+        cols = [c[0] for c in cur.description] if hasattr(cur, 'description') and cur.description else None
+        for r in rows:
+            try:
+                if cols:
+                    d = dict(zip(cols, r))
+                else:
+                    d = {'id': r[0], 'nombre': r[1], 'especialidad': r[2]}
+            except:
+                d = {'id': r[0], 'nombre': r[1], 'especialidad': r[2]}
+            result.append(d)
+        return jsonify(result)
+    finally:
+        try: conn.close()
+        except: pass
+
+@app.route('/sync/push', methods=['POST'])
+def sync_push():
+    """Receive pendings from client and insert into local SQLite.
+    Expected payload: { pendientes: [ {table: 'Rondas', data: {...}, local_id: '<uuid>'}, ... ] }
+    Returns mapping of local_id -> sqlite_rowid for items inserted.
+    """
+    payload = request.get_json(force=True)
+    pendientes = payload.get('pendientes', [])
+    if not pendientes:
+        return ("No pendientes", 400)
+
+    # connect to local sqlite
+    conn = sqlite3.connect(SQLITE_PATH)
+    cur = conn.cursor()
+    # ensure id_map table exists
+    try:
+        cur.execute("""CREATE TABLE IF NOT EXISTS id_map (
+            local_id TEXT PRIMARY KEY,
+            table_name TEXT,
+            sqlite_rowid INTEGER,
+            synced INTEGER DEFAULT 0
+        )""")
+    except Exception as e:
+        print('Error creating id_map table', e)
+
+    mappings = []
+    allowed = _ALLOWED_TABLES
+
+    for item in pendientes:
+        table = item.get('table')
+        data = item.get('data')
+        local_id = item.get('local_id') or item.get('id')  # client may send id field
+        if not table or not isinstance(data, dict):
+            continue
+        if table not in allowed:
+            print('Rejected table not allowed:', table)
+            continue
+
+        # Basic validation: ensure no dangerous columns (only alnum and underscore)
+        if any(not str(k).replace('_','').isalnum() for k in data.keys()):
+            print('Rejected invalid column names in', data.keys())
+            continue
+
+        cols = ', '.join(data.keys())
+        placeholders = ', '.join(['?']*len(data))
+        values = tuple(data.values())
+        try:
+            cur.execute(f"INSERT INTO {table} ({cols}) VALUES ({placeholders})", values)
+            rowid = cur.lastrowid
+            if local_id:
+                try:
+                    cur.execute("INSERT OR REPLACE INTO id_map (local_id, table_name, sqlite_rowid, synced) VALUES (?, ?, ?, 0)",
+                                (str(local_id), table, rowid))
+                except Exception as e:
+                    print('Error inserting id_map', e)
+                mappings.append({'local_id': local_id, 'sqlite_rowid': rowid, 'table': table})
+        except Exception as e:
+            print('Error inserting pending', e)
+
+    conn.commit()
+    conn.close()
+    return jsonify({'mappings': mappings})
+
+@app.route('/sync/pull', methods=['POST'])
+def sync_pull():
+    """Trigger server-side synchronization: push local sqlite to remote SQL Server (calls sincronizar_tablas)."""
+    try:
+        # call sincronizar_tablas from funtions
+        sincronizar_tablas()
+        return jsonify({'status': 'ok'})
+    except Exception as e:
+        print('Error in sync_pull', e)
+        return jsonify({'status': 'error', 'error': str(e)}), 500
 
